@@ -21,7 +21,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
-  const { adminUser, authError, signIn, signOut } = useAppContext();
+  const { adminUser, authError, signIn, signOut, useDummyData, setUseDummyData } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -107,6 +107,21 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             <h2 className="text-xl sm:text-3xl font-black italic tracking-tighter text-white">COMMAND CENTER</h2>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Dummy data toggle */}
+            <button
+              onClick={() => setUseDummyData(!useDummyData)}
+              title={useDummyData ? 'Switch to Firebase data' : 'Switch to demo/dummy data'}
+              className={`flex items-center gap-2 text-xs font-mono border px-3 py-2 transition-colors ${
+                useDummyData
+                  ? 'border-yellow-500/60 text-yellow-400 hover:border-yellow-400'
+                  : 'border-white/20 text-white/40 hover:text-white/70'
+              }`}
+            >
+              <span className="hidden sm:inline uppercase tracking-widest">Demo</span>
+              <span className={`relative inline-flex w-8 h-4 rounded-full transition-colors flex-shrink-0 ${useDummyData ? 'bg-yellow-500' : 'bg-white/20'}`}>
+                <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${useDummyData ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </span>
+            </button>
             <span className="hidden sm:block text-[10px] font-mono text-white/40 truncate max-w-[160px]">{adminUser.email}</span>
             <button
               onClick={handleSignOut}

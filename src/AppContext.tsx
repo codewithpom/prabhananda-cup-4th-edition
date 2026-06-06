@@ -19,6 +19,8 @@ interface AppContextType {
   setSelectedMatchId: (id: string | null) => void;
   adminUser: User | null;
   authError: string | null;
+  useDummyData: boolean;
+  setUseDummyData: (val: boolean) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateMatch: (matchId: string, updates: Partial<Match>) => Promise<void>;
@@ -62,10 +64,10 @@ const DEFAULT_VENUE_INFO: VenueInfo = {
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  // When Firebase is not configured, seed state immediately so there is no loading screen.
-  const [teams, setTeams] = useState<Team[]>(() => isFirebaseConfigured ? [] : TEAMS);
-  const [fixtures, setFixtures] = useState<Match[]>(() => isFirebaseConfigured ? [] : FIXTURES);
-  const [sponsors, setSponsors] = useState<Sponsor[]>(() => isFirebaseConfigured ? [] : SPONSORS);
+  // Internal Firebase/static state (raw). Derived display values computed below.
+  const [firebaseTeams, setFirebaseTeams] = useState<Team[]>(() => isFirebaseConfigured ? [] : TEAMS);
+  const [firebaseFixtures, setFirebaseFixtures] = useState<Match[]>(() => isFirebaseConfigured ? [] : FIXTURES);
+  const [firebaseSponsors, setFirebaseSponsors] = useState<Sponsor[]>(() => isFirebaseConfigured ? [] : SPONSORS);
   const [tournamentMeta, setTournamentMeta] = useState<TournamentMeta>(DEFAULT_TOURNAMENT_META);
   const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
   const [venueInfo, setVenueInfo] = useState<VenueInfo>(DEFAULT_VENUE_INFO);
@@ -73,6 +75,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Dummy data override — persisted across page refreshes via localStorage.
+  const [useDummyData, setUseDummyDataState] = useState<boolean>(() => {
+    try { return localStorage.getItem('useDummyData') === 'true'; } catch { return false; }
+  });
+
+  const setUseDummyData = (val: boolean) => {
+    setUseDummyDataState(val);
+    try { localStorage.setItem('useDummyData', val ? 'true' : 'false'); } catch {}
+  };
+
+  // Derived display values — when the toggle is ON, always serve static dummy data.
+  const teams = useDummyData ? TEAMS : firebaseTeams;
+  const fixtures = useDummyData ? FIXTURES : firebaseFixtures;
+  const sponsors = useDummyData ? SPONSORS : firebaseSponsors;
 
   useEffect(() => {
     const unsubscribeAuth = onAuthChange((user) => {
@@ -90,9 +107,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const timeout = setTimeout(() => {
       if (!settled) {
         settled = true;
-        setTeams(TEAMS);
-        setFixtures(FIXTURES);
-        setSponsors(SPONSORS);
+        setFirebaseTeams(TEAMS);
+        setFirebaseFixtures(FIXTURES);
+        setFirebaseSponsors(SPONSORS);
         setIsLoading(false);
       }
     }, 4000);
@@ -107,9 +124,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const fixturesArray = transformMatches(rawData.matches as Record<string, unknown> | undefined, teamsMap);
       const sponsorsArray = transformSponsors(rawData.sponsors as Record<string, unknown> | undefined);
 
-      setTeams(teamsArray.length > 0 ? teamsArray : TEAMS);
-      setFixtures(fixturesArray.length > 0 ? fixturesArray : FIXTURES);
-      setSponsors(sponsorsArray.length > 0 ? sponsorsArray : SPONSORS);
+      setFirebaseTeams(teamsArray.length > 0 ? teamsArray : TEAMS);
+      setFirebaseFixtures(fixturesArray.length > 0 ? fixturesArray : FIXTURES);
+      setFirebaseSponsors(sponsorsArray.length > 0 ? sponsorsArray : SPONSORS);
       setTournamentMeta(transformTournamentMeta(rawData.tournament?.meta as Record<string, unknown> | undefined));
       setHeroContent(transformHeroContent(rawData.tournament?.hero as Record<string, unknown> | undefined));
       setVenueInfo(transformVenueInfo(rawData.tournament?.venue as Record<string, unknown> | undefined));
@@ -195,6 +212,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isLoading,
       selectedMatchId, setSelectedMatchId,
       adminUser, authError,
+      useDummyData, setUseDummyData,
       signIn, signOut,
       updateMatch, addMatch, deleteMatch, addEvent,
       upsertTeam, deleteTeam,
