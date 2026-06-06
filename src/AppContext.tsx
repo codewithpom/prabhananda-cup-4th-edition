@@ -144,8 +144,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       await authSignIn(email, password);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      setAuthError(message.replace('Firebase: ', '').replace(/ \(auth\/.*\)\.?/, ''));
+      let message = 'Login failed. Please try again.';
+      if (err instanceof Error) {
+        const codeMatch = err.message.match(/\(auth\/([^)]+)\)/);
+        const code = codeMatch?.[1];
+        if (code === 'invalid-credential' || code === 'wrong-password' || code === 'user-not-found') {
+          message = 'Invalid email or password.';
+        } else if (code === 'too-many-requests') {
+          message = 'Too many failed attempts. Please wait and try again.';
+        } else if (code === 'network-request-failed') {
+          message = 'Network error — could not reach Firebase. Check your internet connection.';
+        } else if (code === 'operation-not-allowed') {
+          message = 'Email/Password login is not enabled. Enable it in Firebase Console → Authentication → Sign-in method.';
+        } else if (code) {
+          message = `Auth error: ${code}`;
+        }
+      }
+      setAuthError(message);
       throw err;
     }
   };
