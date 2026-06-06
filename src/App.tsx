@@ -10,6 +10,7 @@ import Location from './components/Location';
 import Footer from './components/Footer';
 import AdminPanel from './components/admin/AdminPanel';
 import MatchDetailsModal from './components/MatchDetailsModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppProvider, useAppContext } from './AppContext';
 import { AnimatePresence } from 'motion/react';
 
@@ -53,8 +54,10 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
 
   return (
-    <AppProvider>
-      <AppContent showAdmin={showAdmin} setShowAdmin={setShowAdmin} />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppContent showAdmin={showAdmin} setShowAdmin={setShowAdmin} />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
