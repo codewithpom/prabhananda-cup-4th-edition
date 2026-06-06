@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function Hero() {
   const { fixtures, setSelectedMatchId, heroContent } = useAppContext();
-  const nextMatch = fixtures.find(m => m.status === 'UPCOMING');
+  const nextMatch = [...fixtures].sort((a, b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1).find(m => m.status === 'UPCOMING');
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 

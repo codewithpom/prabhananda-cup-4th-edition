@@ -6,7 +6,7 @@ import { useState } from 'react';
 export default function LiveMatch() {
   const { fixtures, setSelectedMatchId } = useAppContext();
   const match = fixtures.find(m => m.status === 'LIVE')
-    || [...fixtures].sort((a, b) => new Date(a.date + 'T' + a.time).getTime() - new Date(b.date + 'T' + b.time).getTime()).find(m => m.status === 'UPCOMING')
+    || [...fixtures].sort((a, b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1).find(m => m.status === 'UPCOMING')
     || fixtures[0];
   const [showStream, setShowStream] = useState(false);
 
