@@ -1,0 +1,6 @@
+{
+  "name": "Prabhananda Cup 4th Edition",
+  "description": "Official website for the 4th Prabhananda Cup, an annual football tournament hosted by Ramakrishna Vidyalaya Narendrapur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
