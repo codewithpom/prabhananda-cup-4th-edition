@@ -36,33 +36,40 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const DEFAULT_TOURNAMENT_META: TournamentMeta = {
+  name: 'Prabhananda Cup',
+  edition: '4th Edition',
+  year: 2026,
+  tagline: 'Under-16 State Championship',
+  matchDay: 'MATCH DAY 04 • LIVE NOW',
+  startDate: '2026-05-20',
+  endDate: '2026-05-28',
+};
+
+const DEFAULT_HERO_CONTENT: HeroContent = {
+  titleLine1: 'PRABHA',
+  titleLine2: 'NANDA',
+  badgeText: 'CUP 4TH ED',
+  subtitleText: 'Under-16 State Championship',
+  backgroundImageUrl: '',
+};
+
+const DEFAULT_VENUE_INFO: VenueInfo = {
+  name: 'Ramakrishna Mission Vidyalaya',
+  address: 'Narendrapur, Kolkata, West Bengal 700103',
+  mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3686.974558237302!2d88.39655187600862!3d22.448777179579737!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0271b80c3527df%3A0xe5ed809b02a90101!2sRamakrishna%20Mission%20Vidyalaya%2C%20Narendrapur!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin',
+  stadiumLabel: 'MAIN STADIUM',
+};
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [fixtures, setFixtures] = useState<Match[]>([]);
-  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [tournamentMeta, setTournamentMeta] = useState<TournamentMeta>({
-    name: 'Prabhananda Cup',
-    edition: '4th Edition',
-    year: 2026,
-    tagline: 'Under-16 State Championship',
-    matchDay: 'MATCH DAY 04 • LIVE NOW',
-    startDate: '2026-05-20',
-    endDate: '2026-05-28',
-  });
-  const [heroContent, setHeroContent] = useState<HeroContent>({
-    titleLine1: 'PRABHA',
-    titleLine2: 'NANDA',
-    badgeText: 'CUP 4TH ED',
-    subtitleText: 'Under-16 State Championship',
-    backgroundImageUrl: '',
-  });
-  const [venueInfo, setVenueInfo] = useState<VenueInfo>({
-    name: 'Ramakrishna Mission Vidyalaya',
-    address: 'Narendrapur, Kolkata, West Bengal 700103',
-    mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3686.974558237302!2d88.39655187600862!3d22.448777179579737!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0271b80c3527df%3A0xe5ed809b02a90101!2sRamakrishna%20Mission%20Vidyalaya%2C%20Narendrapur!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin',
-    stadiumLabel: 'MAIN STADIUM',
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  // When Firebase is not configured, seed state immediately so there is no loading screen.
+  const [teams, setTeams] = useState<Team[]>(() => isFirebaseConfigured ? [] : TEAMS);
+  const [fixtures, setFixtures] = useState<Match[]>(() => isFirebaseConfigured ? [] : FIXTURES);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(() => isFirebaseConfigured ? [] : SPONSORS);
+  const [tournamentMeta, setTournamentMeta] = useState<TournamentMeta>(DEFAULT_TOURNAMENT_META);
+  const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
+  const [venueInfo, setVenueInfo] = useState<VenueInfo>(DEFAULT_VENUE_INFO);
+  const [isLoading, setIsLoading] = useState(isFirebaseConfigured);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [adminUser, setAdminUser] = useState<User | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -75,8 +82,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!isFirebaseConfigured) return;
+
     let settled = false;
 
+    // Fall back to static data if Firebase doesn't respond within 4 seconds.
     const timeout = setTimeout(() => {
       if (!settled) {
         settled = true;
@@ -85,7 +95,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSponsors(SPONSORS);
         setIsLoading(false);
       }
-    }, isFirebaseConfigured ? 4000 : 0);
+    }, 4000);
 
     const unsubscribeData = subscribeToTournamentData((rawData) => {
       clearTimeout(timeout);
