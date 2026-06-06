@@ -4,6 +4,7 @@ import { Team, Match, Sponsor, TournamentMeta, HeroContent, VenueInfo } from './
 import { subscribeToTournamentData, updateMatch as dbUpdateMatch, addMatch as dbAddMatch, deleteMatch as dbDeleteMatch, addEvent as dbAddEvent, upsertTeam as dbUpsertTeam, deleteTeam as dbDeleteTeam, upsertSponsor as dbUpsertSponsor, deleteSponsor as dbDeleteSponsor, updateTournamentMeta as dbUpdateTournamentMeta, updateHeroContent as dbUpdateHeroContent, updateVenueInfo as dbUpdateVenueInfo } from './services/db';
 import { signIn as authSignIn, signOut as authSignOut, onAuthChange } from './services/auth';
 import { transformTeams, transformMatches, transformSponsors, transformTournamentMeta, transformHeroContent, transformVenueInfo } from './utils/firebaseTransform';
+import { TEAMS, FIXTURES, SPONSORS } from './data';
 
 interface AppContextType {
   teams: Team[];
@@ -73,20 +74,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let settled = false;
+
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        setTeams(TEAMS);
+        setFixtures(FIXTURES);
+        setSponsors(SPONSORS);
+        setIsLoading(false);
+      }
+    }, 4000);
+
     const unsubscribeData = subscribeToTournamentData((rawData) => {
+      clearTimeout(timeout);
+      settled = true;
+
       const teamsArray = transformTeams(rawData.teams as Record<string, unknown> | undefined);
       const teamsMap: Record<string, Team> = {};
       teamsArray.forEach(t => { teamsMap[t.id] = t; });
+      const fixturesArray = transformMatches(rawData.matches as Record<string, unknown> | undefined, teamsMap);
+      const sponsorsArray = transformSponsors(rawData.sponsors as Record<string, unknown> | undefined);
 
-      setTeams(teamsArray);
-      setFixtures(transformMatches(rawData.matches as Record<string, unknown> | undefined, teamsMap));
-      setSponsors(transformSponsors(rawData.sponsors as Record<string, unknown> | undefined));
+      setTeams(teamsArray.length > 0 ? teamsArray : TEAMS);
+      setFixtures(fixturesArray.length > 0 ? fixturesArray : FIXTURES);
+      setSponsors(sponsorsArray.length > 0 ? sponsorsArray : SPONSORS);
       setTournamentMeta(transformTournamentMeta(rawData.tournament?.meta as Record<string, unknown> | undefined));
       setHeroContent(transformHeroContent(rawData.tournament?.hero as Record<string, unknown> | undefined));
       setVenueInfo(transformVenueInfo(rawData.tournament?.venue as Record<string, unknown> | undefined));
       setIsLoading(false);
     });
-    return unsubscribeData;
+
+    return () => {
+      clearTimeout(timeout);
+      unsubscribeData();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
