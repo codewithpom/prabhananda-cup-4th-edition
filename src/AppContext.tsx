@@ -5,6 +5,7 @@ import { subscribeToTournamentData, updateMatch as dbUpdateMatch, addMatch as db
 import { signIn as authSignIn, signOut as authSignOut, onAuthChange } from './services/auth';
 import { transformTeams, transformMatches, transformSponsors, transformTournamentMeta, transformHeroContent, transformVenueInfo } from './utils/firebaseTransform';
 import { TEAMS, FIXTURES, SPONSORS } from './data';
+import { isFirebaseConfigured } from './firebase';
 
 interface AppContextType {
   teams: Team[];
@@ -84,7 +85,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSponsors(SPONSORS);
         setIsLoading(false);
       }
-    }, 4000);
+    }, isFirebaseConfigured ? 4000 : 0);
 
     const unsubscribeData = subscribeToTournamentData((rawData) => {
       clearTimeout(timeout);

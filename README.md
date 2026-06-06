@@ -39,48 +39,65 @@ The site delivers live match scores, real-time updates via Firebase, AI-generate
 
 ---
 
-## Local Development
+## Running Without Firebase (Demo Mode)
 
-### Prerequisites
-
-- Node.js 20 or later
-- A Firebase project (see setup below)
-- A Google AI Studio API key for Gemini
-
-### Setup
-
-**1. Clone the repository**
+You do **not** need a Firebase account to preview the app. Without any environment variables set, the site loads instantly with built-in dummy data — all teams, fixtures, match events, sponsors, and venue info are pre-populated from `src/data.ts`.
 
 ```bash
 git clone https://github.com/<your-org>/prabhananda-cup-4th-edition.git
 cd prabhananda-cup-4th-edition
-```
-
-**2. Install dependencies**
-
-```bash
 npm install
+npm run dev
 ```
 
-**3. Configure environment variables**
+Open [http://localhost:3000](http://localhost:3000). The full UI will render with sample data. The admin panel login will not work in demo mode (Firebase Auth is required for writes).
 
-Copy the example env file and fill in your credentials:
+> When Firebase **is** configured, the app switches automatically to live data from the database. No code changes needed — just add the `.env.local` file described below.
 
-```bash
-cp .env.example .env.local
+---
+
+## Connecting to Firebase
+
+### Step 1 — Create a Firebase project
+
+1. Go to [console.firebase.google.com](https://console.firebase.google.com) and click **Add project**.
+2. Give it a name (e.g. `prabhananda-cup`) and follow the prompts. You can disable Google Analytics.
+
+### Step 2 — Enable Realtime Database
+
+1. In the left sidebar go to **Build > Realtime Database** and click **Create Database**.
+2. Choose a region — **asia-south1 (Mumbai)** is recommended for India.
+3. Start in **locked mode** (you will update the rules in Step 5).
+
+### Step 3 — Enable Authentication
+
+1. In the left sidebar go to **Build > Authentication > Sign-in method**.
+2. Click **Email/Password** and toggle it **Enabled**. Save.
+3. Go to the **Users** tab and click **Add user**. Enter the email and password you want to use for the admin panel. Save these credentials — you'll need them to log in.
+
+### Step 4 — Get your Web App config
+
+1. In the left sidebar click the gear icon → **Project Settings**.
+2. Scroll down to **Your apps** and click **Add app > Web** (the `</>` icon).
+3. Register the app (any nickname is fine). You do **not** need Firebase Hosting.
+4. Copy the `firebaseConfig` object that appears. It will look like:
+
+```js
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "your-project.firebaseapp.com",
+  databaseURL: "https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "your-project",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abc123..."
+};
 ```
 
-Open `.env.local` and set all values (see the [Environment Variables](#environment-variables) section below).
+### Step 5 — Set database security rules
 
-**4. Firebase project setup**
-
-1. Go to [console.firebase.google.com](https://console.firebase.google.com) and create a new project (or use an existing one).
-2. Navigate to **Build > Realtime Database** and create a database. Choose a region close to your users. Start in **locked mode** — you will add rules in the next step.
-3. Navigate to **Build > Authentication > Sign-in method** and enable the **Email/Password** provider.
-4. Navigate to **Authentication > Users** and manually create an admin user with your chosen email and a strong password. This account is used to authenticate the admin panel.
-5. Navigate to **Project Settings > General > Your apps**, click **Add app > Web**, register the app, and copy the `firebaseConfig` values into your `.env.local`.
-
-Paste the following security rules into **Realtime Database > Rules**:
+1. In the left sidebar go to **Build > Realtime Database > Rules**.
+2. Replace the contents with:
 
 ```json
 {
@@ -91,25 +108,48 @@ Paste the following security rules into **Realtime Database > Rules**:
 }
 ```
 
-These rules allow any visitor to read tournament data while restricting all writes to authenticated admin users.
+3. Click **Publish**. This allows anyone to read tournament data while restricting all writes to the authenticated admin user.
 
-**5. Seed the database**
+### Step 6 — Create `.env.local`
 
-Run the seed script once to populate Firebase with the initial teams, fixtures, and sponsors:
+In the project root, copy the example file and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+Open `.env.local` and paste your Firebase config values:
+
+```env
+VITE_FIREBASE_API_KEY=AIzaSy...
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_DATABASE_URL=https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app
+VITE_FIREBASE_PROJECT_ID=your-project
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789012
+VITE_FIREBASE_APP_ID=1:123456789012:web:abc123...
+VITE_GEMINI_API_KEY=AIzaSy...
+```
+
+> Get your Gemini API key from [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey). It is optional — AI commentary will be disabled if not provided.
+
+### Step 7 — Seed the database
+
+Run the seed script **once** to push the initial teams, fixtures, and sponsors into Firebase:
 
 ```bash
 npm run seed
 ```
 
-> **Important:** Only run this once. Re-running will overwrite existing data.
+> **Important:** Only run this once against a fresh database. Re-running will overwrite any live data you have edited through the admin panel.
 
-**6. Start the development server**
+### Step 8 — Start the dev server
 
 ```bash
 npm run dev
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). The app will now load data from Firebase in real time. To verify it is working, click the gear icon in the footer, log in with the admin credentials from Step 3, and update a match score — you should see it change live in another browser tab.
 
 ---
 
@@ -147,7 +187,7 @@ Add the following secrets to your GitHub repository under **Settings > Secrets a
 | `VITE_FIREBASE_DATABASE_URL` | Firebase Realtime Database URL |
 | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
 | `VITE_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Cloud Messaging sender ID |
 | `VITE_FIREBASE_APP_ID` | Firebase app ID |
 | `VITE_GEMINI_API_KEY` | Google Gemini API key |
 | `VERCEL_TOKEN` | Vercel personal access token (from vercel.com/account/tokens) |
@@ -166,7 +206,7 @@ The admin panel (Command Center) allows authorized users to manage the tournamen
 
 1. Open the live site in a browser.
 2. Scroll to the footer and click the small **gear icon** in the bottom-right area of the footer.
-3. Enter the credentials for the Firebase Auth admin user you created during setup.
+3. Enter the credentials for the Firebase Auth admin user you created during Step 3 of the Firebase setup.
 
 **What you can do:**
 
