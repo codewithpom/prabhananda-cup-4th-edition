@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "clean": "npx rimraf dist",
     "lint": "tsc --noEmit",
-    "seed": "tsx --env-file=.env.local src/seed/seedFirebase.ts"
+    "seed": "tsx --env-file=.env.local src/seed/seedFirebase.ts",
+    "test": "playwright test",
+    "test:debug": "playwright test --debug"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -23,6 +25,7 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",

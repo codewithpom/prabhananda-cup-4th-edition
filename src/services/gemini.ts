@@ -1,7 +1,11 @@
 import { GoogleGenAI } from '@google/genai';
 import { Match } from '../types';
 
-const genAI = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+function getClient(): GoogleGenAI {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) throw new Error('Gemini API key not configured');
+  return new GoogleGenAI({ apiKey });
+}
 
 function formatEvents(match: Match): string {
   if (!match.events || match.events.length === 0) return 'No events recorded yet.';
@@ -25,7 +29,7 @@ export async function generateMatchCommentary(match: Match): Promise<string> {
     `Write in an energetic but factual sports journalism tone. Keep it under 120 words total.`;
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await getClient().models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
     });
@@ -60,7 +64,7 @@ export async function generatePostMatchSummary(match: Match): Promise<string> {
     `Write in an energetic but factual sports journalism tone. Keep it under 120 words total.`;
 
   try {
-    const response = await genAI.models.generateContent({
+    const response = await getClient().models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
     });

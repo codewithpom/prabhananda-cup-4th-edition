@@ -8,6 +8,16 @@ export default function LiveMatch() {
   const match = fixtures.find(m => m.status === 'LIVE') || fixtures[0];
   const [showStream, setShowStream] = useState(false);
 
+  if (!match) {
+    return (
+      <section id="live" className="py-12 sm:py-24 relative border-y border-white/10 bg-[#0A0A0B]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <p className="text-neutral-500 font-mono text-sm tracking-widest uppercase text-center">No match data available yet.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="live" className="py-12 sm:py-24 relative border-y border-white/10 bg-[#0A0A0B]">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
