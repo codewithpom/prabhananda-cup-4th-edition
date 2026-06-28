@@ -153,6 +153,27 @@ Open [http://localhost:3000](http://localhost:3000). The app will now load data 
 
 ---
 
+## Local development with Firebase Emulator
+
+For safe local development that never touches your production database, use the Firebase Emulator Suite. The repository includes a convenience script that starts the emulator and the dev server together.
+
+1. Copy the example env and enable the emulator flag:
+
+```bash
+copy .env.local.example .env.local
+# edit .env.local and set VITE_USE_FIREBASE_EMULATOR=true
+```
+
+2. Start the emulator + dev server:
+
+```bash
+npm run start:local
+```
+
+This runs the Realtime Database emulator on `localhost:9000` and Auth on `http://localhost:9099`, then launches the Vite dev server. Works on Windows and Unix shells.
+
+---
+
 ## Vercel Deployment
 
 **1. Push to GitHub**

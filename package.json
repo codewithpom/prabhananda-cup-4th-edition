@@ -12,6 +12,8 @@
     "seed": "tsx --env-file=.env.local src/seed/seedFirebase.ts",
     "test": "playwright test",
     "test:debug": "playwright test --debug"
+    ,
+    "start:local": "node scripts/start-local.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

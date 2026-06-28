@@ -32,6 +32,39 @@ export default function MatchesTab() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Local editable fields for expanded match view (stream/highlights/stats)
+  const [editForms, setEditForms] = useState<Record<string, {
+    streamUrl?: string;
+    highlightsUrl?: string;
+    stats?: {
+      possession?: [number | '', number | ''];
+      shots?: [number | '', number | ''];
+      fouls?: [number | '', number | ''];
+    };
+  }>>({});
+
+  const handleSaveMatchDetails = async (matchId: string) => {
+    const form = editForms[matchId];
+    if (!form) return;
+    const updates: Record<string, unknown> = {};
+    if (typeof form.streamUrl !== 'undefined') updates.streamUrl = form.streamUrl || null;
+    if (typeof form.highlightsUrl !== 'undefined') updates.highlightsUrl = form.highlightsUrl || null;
+    if (form.stats) {
+      const { possession, shots, fouls } = form.stats;
+      updates.stats = {
+        possession: possession ? [Number(possession[0] || 0), Number(possession[1] || 0)] : undefined,
+        shots: shots ? [Number(shots[0] || 0), Number(shots[1] || 0)] : undefined,
+        fouls: fouls ? [Number(fouls[0] || 0), Number(fouls[1] || 0)] : undefined,
+      };
+    }
+    setSavingId(matchId);
+    try {
+      await updateMatch(matchId, updates);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   const handleScoreChange = async (matchId: string, field: 'homeScore' | 'awayScore', value: string) => {
     const num = value === '' ? null : parseInt(value) || 0;
     await updateMatch(matchId, { [field]: num });
@@ -39,6 +72,25 @@ export default function MatchesTab() {
 
   const handleStatusChange = async (matchId: string, status: Match['status']) => {
     await updateMatch(matchId, { status });
+  };
+
+  const handleQuickScore = async (matchId: string, team: 'home' | 'away', delta: number) => {
+    const match = fixtures.find(item => item.id === matchId);
+    if (!match) return;
+    const current = team === 'home' ? match.homeScore : match.awayScore;
+    const next = Math.max(0, (current ?? 0) + delta);
+    await updateMatch(matchId, { [team === 'home' ? 'homeScore' : 'awayScore']: next });
+  };
+
+  const handleQuickEvent = (matchId: string, type: PlayEvent['type']) => {
+    setEventForms(prev => ({
+      ...prev,
+      [matchId]: {
+        ...(prev[matchId] || EMPTY_EVENT),
+        type,
+        description: prev[matchId]?.description || `${type} added quickly`,
+      },
+    }));
   };
 
   const handleAddEvent = async (matchId: string, e: React.FormEvent) => {
@@ -87,6 +139,27 @@ export default function MatchesTab() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleToggleExpand = (match: Match) => {
+    const isOpen = expandedMatchId === match.id;
+    if (isOpen) {
+      setExpandedMatchId(null);
+      return;
+    }
+    setEditForms(prev => ({
+      ...prev,
+      [match.id]: {
+        streamUrl: match.streamUrl ?? '',
+        highlightsUrl: match.highlightsUrl ?? '',
+        stats: {
+          possession: match.stats?.possession ? [match.stats.possession[0], match.stats.possession[1]] : ['', ''],
+          shots: match.stats?.shots ? [match.stats.shots[0], match.stats.shots[1]] : ['', ''],
+          fouls: match.stats?.fouls ? [match.stats.fouls[0], match.stats.fouls[1]] : ['', ''],
+        }
+      }
+    }));
+    setExpandedMatchId(match.id);
   };
 
   return (
@@ -179,18 +252,32 @@ export default function MatchesTab() {
                   <span className="font-mono text-xs font-bold text-yellow-500 bg-yellow-500/10 px-3 py-1 uppercase tracking-widest border border-yellow-500/20 self-start">
                     {match.date}
                   </span>
-                  <select
-                    className="bg-[#0A0A0B] border border-white/20 text-xs py-2 px-3 focus:outline-none focus:border-yellow-500 text-white font-mono uppercase tracking-widest h-9"
-                    value={match.status}
-                    onChange={e => handleStatusChange(match.id, e.target.value as Match['status'])}
-                  >
-                    <option value="UPCOMING">UPCOMING</option>
-                    <option value="LIVE">LIVE</option>
-                    <option value="FINISHED">FINISHED</option>
-                  </select>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      className="bg-[#0A0A0B] border border-white/20 text-xs py-2 px-3 focus:outline-none focus:border-yellow-500 text-white font-mono uppercase tracking-widest h-9"
+                      value={match.status}
+                      onChange={e => handleStatusChange(match.id, e.target.value as Match['status'])}
+                    >
+                      <option value="UPCOMING">UPCOMING</option>
+                      <option value="LIVE">LIVE</option>
+                      <option value="FINISHED">FINISHED</option>
+                    </select>
+                    <button
+                      onClick={() => handleStatusChange(match.id, 'LIVE')}
+                      className="text-[10px] font-mono uppercase tracking-widest border border-green-500/30 bg-green-500/10 px-3 py-2 hover:bg-green-500/20 text-green-400 h-9"
+                    >
+                      Set Live
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(match.id, 'FINISHED')}
+                      className="text-[10px] font-mono uppercase tracking-widest border border-red-500/30 bg-red-500/10 px-3 py-2 hover:bg-red-500/20 text-red-400 h-9"
+                    >
+                      Set Finished
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2 ml-auto">
                     <button
-                      onClick={() => setExpandedMatchId(isExpanded ? null : match.id)}
+                      onClick={() => handleToggleExpand(match)}
                       className="flex items-center gap-1.5 text-xs font-mono border border-white/20 px-3 py-2 hover:bg-white/10 transition-colors text-white/50 hover:text-white h-9"
                     >
                       {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -212,6 +299,10 @@ export default function MatchesTab() {
                     {match.homeTeam.name}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-col gap-1">
+                      <button onClick={() => handleQuickScore(match.id, 'home', 1)} className="w-7 h-7 text-[10px] font-mono border border-white/20 hover:bg-white/10 text-white">+1</button>
+                      <button onClick={() => handleQuickScore(match.id, 'home', -1)} className="w-7 h-7 text-[10px] font-mono border border-white/20 hover:bg-white/10 text-white">−1</button>
+                    </div>
                     <input
                       type="number"
                       min="0"
@@ -229,6 +320,10 @@ export default function MatchesTab() {
                       placeholder="–"
                       onChange={e => handleScoreChange(match.id, 'awayScore', e.target.value)}
                     />
+                    <div className="flex flex-col gap-1">
+                      <button onClick={() => handleQuickScore(match.id, 'away', 1)} className="w-7 h-7 text-[10px] font-mono border border-white/20 hover:bg-white/10 text-white">+1</button>
+                      <button onClick={() => handleQuickScore(match.id, 'away', -1)} className="w-7 h-7 text-[10px] font-mono border border-white/20 hover:bg-white/10 text-white">−1</button>
+                    </div>
                   </div>
                   <div className="flex-1 font-black text-base sm:text-xl tracking-tighter text-left text-white truncate">
                     {match.awayTeam.name}
@@ -260,6 +355,18 @@ export default function MatchesTab() {
                   {/* Add Event Form */}
                   <div>
                     <h4 className="text-[10px] font-mono uppercase tracking-widest text-white/50 mb-3">Add Event</h4>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {(['Goal','Yellow Card','Red Card','Substitution','Commentary'] as PlayEvent['type'][]).map(type => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => handleQuickEvent(match.id, type)}
+                          className="text-[10px] font-mono uppercase tracking-widest border border-white/20 px-3 py-1.5 hover:bg-white/10 text-white/70"
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
                     <form onSubmit={e => handleAddEvent(match.id, e)} className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
@@ -318,6 +425,108 @@ export default function MatchesTab() {
                         </button>
                       </div>
                     )}
+                  </div>
+
+                  {/* Stream & Highlights + Stats */}
+                  <div>
+                    <h4 className="text-[10px] font-mono uppercase tracking-widest text-white/50 mb-3">Stream & Highlights</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <input
+                        type="url"
+                        value={editForms[match.id]?.streamUrl ?? ''}
+                        onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), streamUrl: e.target.value } }))}
+                        placeholder="https://youtube.com/embed/..."
+                        className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                      />
+                      <input
+                        type="url"
+                        value={editForms[match.id]?.highlightsUrl ?? ''}
+                        onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), highlightsUrl: e.target.value } }))}
+                        placeholder="https://youtube.com/watch?v=..."
+                        className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                      />
+                    </div>
+
+                    <h4 className="text-[10px] font-mono uppercase tracking-widest text-white/50 mb-3">Match Stats</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-white/50 block">Possession %</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={editForms[match.id]?.stats?.possession?.[0] ?? ''}
+                            onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), stats: { ...(prev[match.id]?.stats || {}), possession: [e.target.value === '' ? '' : Number(e.target.value), prev[match.id]?.stats?.possession?.[1] ?? ''] } } }))}
+                            className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={editForms[match.id]?.stats?.possession?.[1] ?? ''}
+                            onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), stats: { ...(prev[match.id]?.stats || {}), possession: [prev[match.id]?.stats?.possession?.[0] ?? '', e.target.value === '' ? '' : Number(e.target.value)] } } }))}
+                            className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-white/50 block">Shots</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={editForms[match.id]?.stats?.shots?.[0] ?? ''}
+                            onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), stats: { ...(prev[match.id]?.stats || {}), shots: [e.target.value === '' ? '' : Number(e.target.value), prev[match.id]?.stats?.shots?.[1] ?? ''] } } }))}
+                            className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            value={editForms[match.id]?.stats?.shots?.[1] ?? ''}
+                            onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), stats: { ...(prev[match.id]?.stats || {}), shots: [prev[match.id]?.stats?.shots?.[0] ?? '', e.target.value === '' ? '' : Number(e.target.value)] } } }))}
+                            className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-mono uppercase tracking-widest text-white/50 block">Fouls</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={editForms[match.id]?.stats?.fouls?.[0] ?? ''}
+                            onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), stats: { ...(prev[match.id]?.stats || {}), fouls: [e.target.value === '' ? '' : Number(e.target.value), prev[match.id]?.stats?.fouls?.[1] ?? ''] } } }))}
+                            className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            value={editForms[match.id]?.stats?.fouls?.[1] ?? ''}
+                            onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), stats: { ...(prev[match.id]?.stats || {}), fouls: [prev[match.id]?.stats?.fouls?.[0] ?? '', e.target.value === '' ? '' : Number(e.target.value)] } } }))}
+                            className="w-full bg-white/5 border border-white/20 px-3 py-2 text-white text-xs focus:outline-none focus:border-yellow-500 font-mono h-9"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => handleSaveMatchDetails(match.id)}
+                        disabled={savingId === match.id}
+                        className="text-xs font-mono bg-yellow-500 text-black px-4 py-2 hover:bg-white transition-colors h-9 disabled:opacity-50 uppercase tracking-widest font-black"
+                      >
+                        {savingId === match.id ? 'Saving...' : 'Save Details'}
+                      </button>
+                      <button
+                        onClick={() => setEditForms(prev => ({ ...prev, [match.id]: { streamUrl: match.streamUrl || '', highlightsUrl: match.highlightsUrl || '', stats: { possession: match.stats?.possession ? [match.stats.possession[0], match.stats.possession[1]] : ['', ''], shots: match.stats?.shots ? [match.stats.shots[0], match.stats.shots[1]] : ['', ''], fouls: match.stats?.fouls ? [match.stats.fouls[0], match.stats.fouls[1]] : ['', ''] } } }))}
+                        className="text-xs font-mono bg-white/5 text-white px-4 py-2 hover:bg-white/10 transition-colors h-9 uppercase tracking-widest"
+                      >
+                        Reset
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
