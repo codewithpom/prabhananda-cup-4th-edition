@@ -16,7 +16,7 @@ export default function Teams() {
         </h3>
         <div className="mb-10 block">
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-white leading-none">
-            CLASS 10<br/>CONTENDERS
+            STUDENT<br/>CONTENDERS
           </h2>
         </div>
 

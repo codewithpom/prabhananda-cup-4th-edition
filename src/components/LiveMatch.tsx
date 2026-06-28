@@ -29,10 +29,24 @@ export default function LiveMatch() {
           </h3>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
             <h2 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tighter uppercase italic text-white leading-none">MATCH {match.id.replace('m','').padStart(2, '0')} / GROUP {match.homeTeam.group}</h2>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 self-start sm:self-auto">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-red-500 font-mono text-xs font-bold tracking-wider">LIVE</span>
-            </div>
+            {match.status === 'LIVE' && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 self-start sm:self-auto">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-red-500 font-mono text-xs font-bold tracking-wider">LIVE</span>
+              </div>
+            )}
+            {match.status === 'UPCOMING' && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 self-start sm:self-auto">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="text-blue-500 font-mono text-xs font-bold tracking-wider">UPCOMING</span>
+              </div>
+            )}
+            {match.status === 'FINISHED' && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-500/10 border border-gray-500/20 self-start sm:self-auto">
+                <span className="w-2 h-2 rounded-full bg-gray-500" />
+                <span className="text-gray-500 font-mono text-xs font-bold tracking-wider">FINISHED</span>
+              </div>
+            )}
           </div>
           <p className="text-neutral-500 font-mono text-sm tracking-widest uppercase">Matchday • {match.date}</p>
         </div>
