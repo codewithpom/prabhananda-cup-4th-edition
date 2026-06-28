@@ -25,8 +25,8 @@ const FIREBASE_FIXTURES = [
 test('LiveMatch selection logic — picks earliest upcoming, not the Final', async ({ page }) => {
   const result = await page.evaluate((fixtures) => {
     // Exact logic from LiveMatch.tsx
-    const match = fixtures.find(m => m.status === 'LIVE')
-      || [...fixtures].sort((a, b) => (a.date + a.time) < (b.date + b.time) ? -1 : 1).find(m => m.status === 'UPCOMING')
+    const match = fixtures.find((m: { status: string }) => m.status === 'LIVE')
+      || [...fixtures].sort((a: { date: string; time: string }, b: { date: string; time: string }) => (a.date + a.time) < (b.date + b.time) ? -1 : 1).find((m: { status: string }) => m.status === 'UPCOMING')
       || fixtures[0];
     return { id: match?.id, home: match?.homeTeam.name, away: match?.awayTeam.name };
   }, FIREBASE_FIXTURES);
@@ -41,8 +41,8 @@ test('LiveMatch selection logic — picks earliest upcoming, not the Final', asy
 test('OLD broken logic — would have shown TBD (Final)', async ({ page }) => {
   const result = await page.evaluate((fixtures) => {
     // Old code: fixtures.find(LIVE) || fixtures[0]
-    const match = fixtures.find((m: {status:string}) => m.status === 'LIVE') || fixtures[0];
-    return { id: (match as {id:string}).id, home: (match as {homeTeam:{name:string}}).homeTeam.name };
+    const match = fixtures.find((m: { status: string }) => m.status === 'LIVE') || fixtures[0];
+    return { id: (match as { id: string }).id, home: (match as { homeTeam: { name: string } }).homeTeam.name };
   }, FIREBASE_FIXTURES);
 
   console.log('Old logic picked:', result);

@@ -41,6 +41,10 @@ export default function MatchesTab() {
       shots?: [number | '', number | ''];
       fouls?: [number | '', number | ''];
     };
+    homeTeamName?: string;
+    awayTeamName?: string;
+    homeTeamTbd?: boolean;
+    awayTeamTbd?: boolean;
   }>>({});
 
   const handleSaveMatchDetails = async (matchId: string) => {
@@ -49,6 +53,10 @@ export default function MatchesTab() {
     const updates: Record<string, unknown> = {};
     if (typeof form.streamUrl !== 'undefined') updates.streamUrl = form.streamUrl || null;
     if (typeof form.highlightsUrl !== 'undefined') updates.highlightsUrl = form.highlightsUrl || null;
+    if (typeof form.homeTeamName !== 'undefined') updates.homeTeamName = form.homeTeamName.trim() || null;
+    if (typeof form.awayTeamName !== 'undefined') updates.awayTeamName = form.awayTeamName.trim() || null;
+    if (typeof form.homeTeamTbd !== 'undefined') updates.homeTeamTbd = form.homeTeamTbd;
+    if (typeof form.awayTeamTbd !== 'undefined') updates.awayTeamTbd = form.awayTeamTbd;
     if (form.stats) {
       const { possession, shots, fouls } = form.stats;
       updates.stats = {
@@ -156,7 +164,11 @@ export default function MatchesTab() {
           possession: match.stats?.possession ? [match.stats.possession[0], match.stats.possession[1]] : ['', ''],
           shots: match.stats?.shots ? [match.stats.shots[0], match.stats.shots[1]] : ['', ''],
           fouls: match.stats?.fouls ? [match.stats.fouls[0], match.stats.fouls[1]] : ['', ''],
-        }
+        },
+        homeTeamName: match.homeTeamName ?? match.homeTeam.name,
+        awayTeamName: match.awayTeamName ?? match.awayTeam.name,
+        homeTeamTbd: Boolean(match.homeTeamTbd),
+        awayTeamTbd: Boolean(match.awayTeamTbd),
       }
     }));
     setExpandedMatchId(match.id);
@@ -295,8 +307,25 @@ export default function MatchesTab() {
 
                 {/* Score Editor */}
                 <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1 font-black text-base sm:text-xl tracking-tighter text-right text-white truncate">
-                    {match.homeTeam.name}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col items-end gap-2">
+                      <input
+                        type="text"
+                        value={editForms[match.id]?.homeTeamName ?? match.homeTeamName ?? match.homeTeam.name}
+                        onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), homeTeamName: e.target.value } }))}
+                        placeholder="Home team"
+                        className="w-full max-w-[220px] bg-[#0A0A0B] border border-white/20 px-3 py-2 text-right text-sm font-black tracking-tighter text-white focus:outline-none focus:border-yellow-500"
+                      />
+                      <label className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/50">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(editForms[match.id]?.homeTeamTbd ?? match.homeTeamTbd)}
+                          onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), homeTeamTbd: e.target.checked } }))}
+                          className="accent-yellow-500"
+                        />
+                        Show TBD
+                      </label>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="flex flex-col gap-1">
@@ -325,8 +354,25 @@ export default function MatchesTab() {
                       <button onClick={() => handleQuickScore(match.id, 'away', -1)} className="w-7 h-7 text-[10px] font-mono border border-white/20 hover:bg-white/10 text-white">−1</button>
                     </div>
                   </div>
-                  <div className="flex-1 font-black text-base sm:text-xl tracking-tighter text-left text-white truncate">
-                    {match.awayTeam.name}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col items-start gap-2">
+                      <input
+                        type="text"
+                        value={editForms[match.id]?.awayTeamName ?? match.awayTeamName ?? match.awayTeam.name}
+                        onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), awayTeamName: e.target.value } }))}
+                        placeholder="Away team"
+                        className="w-full max-w-[220px] bg-[#0A0A0B] border border-white/20 px-3 py-2 text-left text-sm font-black tracking-tighter text-white focus:outline-none focus:border-yellow-500"
+                      />
+                      <label className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/50">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(editForms[match.id]?.awayTeamTbd ?? match.awayTeamTbd)}
+                          onChange={e => setEditForms(prev => ({ ...prev, [match.id]: { ...(prev[match.id] || {}), awayTeamTbd: e.target.checked } }))}
+                          className="accent-yellow-500"
+                        />
+                        Show TBD
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -521,7 +567,7 @@ export default function MatchesTab() {
                         {savingId === match.id ? 'Saving...' : 'Save Details'}
                       </button>
                       <button
-                        onClick={() => setEditForms(prev => ({ ...prev, [match.id]: { streamUrl: match.streamUrl || '', highlightsUrl: match.highlightsUrl || '', stats: { possession: match.stats?.possession ? [match.stats.possession[0], match.stats.possession[1]] : ['', ''], shots: match.stats?.shots ? [match.stats.shots[0], match.stats.shots[1]] : ['', ''], fouls: match.stats?.fouls ? [match.stats.fouls[0], match.stats.fouls[1]] : ['', ''] } } }))}
+                        onClick={() => setEditForms(prev => ({ ...prev, [match.id]: { streamUrl: match.streamUrl || '', highlightsUrl: match.highlightsUrl || '', stats: { possession: match.stats?.possession ? [match.stats.possession[0], match.stats.possession[1]] : ['', ''], shots: match.stats?.shots ? [match.stats.shots[0], match.stats.shots[1]] : ['', ''], fouls: match.stats?.fouls ? [match.stats.fouls[0], match.stats.fouls[1]] : ['', ''] }, homeTeamName: match.homeTeamName ?? match.homeTeam.name, awayTeamName: match.awayTeamName ?? match.awayTeam.name, homeTeamTbd: Boolean(match.homeTeamTbd), awayTeamTbd: Boolean(match.awayTeamTbd) } }))}
                         className="text-xs font-mono bg-white/5 text-white px-4 py-2 hover:bg-white/10 transition-colors h-9 uppercase tracking-widest"
                       >
                         Reset

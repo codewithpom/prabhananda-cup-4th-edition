@@ -72,7 +72,8 @@ The Realtime Database root contains four top-level keys:
 │   │                  #   startDate, endDate
 │   ├── hero/          # HeroContent: titleLine1, titleLine2, badgeText,
 │   │                  #   subtitleText, backgroundImageUrl
-│   └── venue/         # VenueInfo: name, address, mapEmbedUrl, stadiumLabel
+│   ├── venue/         # VenueInfo: name, address, mapEmbedUrl, stadiumLabel
+│   └── socialLinks/   # SocialLinks: facebook, instagram, x (URLs)
 │
 ├── teams/
 │   └── <teamId>/      # Team: id, name, logo, group

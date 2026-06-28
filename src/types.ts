@@ -28,6 +28,10 @@ export interface Match {
   awayTeam: Team;
   homeScore: number | null;
   awayScore: number | null;
+  homeTeamName?: string | null;
+  awayTeamName?: string | null;
+  homeTeamTbd?: boolean;
+  awayTeamTbd?: boolean;
   status: 'UPCOMING' | 'LIVE' | 'FINISHED';
   date: string;
   time: string;
@@ -73,4 +77,10 @@ export interface VenueInfo {
   address: string;
   mapEmbedUrl: string;
   stadiumLabel: string;
+}
+
+export interface SocialLinks {
+  facebook: string;
+  instagram: string;
+  x: string;
 }

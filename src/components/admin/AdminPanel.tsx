@@ -8,8 +8,9 @@ import TeamsTab from './tabs/TeamsTab';
 import SponsorsTab from './tabs/SponsorsTab';
 import HeroTab from './tabs/HeroTab';
 import VenueTab from './tabs/VenueTab';
+import SocialLinksTab from './tabs/SocialLinksTab';
 
-type Tab = 'tournament' | 'matches' | 'teams' | 'sponsors' | 'hero' | 'venue';
+type Tab = 'tournament' | 'matches' | 'teams' | 'sponsors' | 'hero' | 'venue' | 'socialLinks';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'tournament', label: 'Tournament' },
@@ -18,6 +19,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'sponsors', label: 'Sponsors' },
   { id: 'hero', label: 'Hero' },
   { id: 'venue', label: 'Venue' },
+  { id: 'socialLinks', label: 'Social Links' },
 ];
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
@@ -177,6 +179,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               {activeTab === 'sponsors' && <SponsorsTab />}
               {activeTab === 'hero' && <HeroTab />}
               {activeTab === 'venue' && <VenueTab />}
+              {activeTab === 'socialLinks' && <SocialLinksTab />}
             </motion.div>
           </AnimatePresence>
         </div>

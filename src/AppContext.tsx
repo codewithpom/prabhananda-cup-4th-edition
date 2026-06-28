@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from 'firebase/auth';
-import { Team, Match, Sponsor, TournamentMeta, HeroContent, VenueInfo } from './types';
-import { subscribeToTournamentData, updateMatch as dbUpdateMatch, addMatch as dbAddMatch, deleteMatch as dbDeleteMatch, addEvent as dbAddEvent, upsertTeam as dbUpsertTeam, deleteTeam as dbDeleteTeam, upsertSponsor as dbUpsertSponsor, deleteSponsor as dbDeleteSponsor, updateTournamentMeta as dbUpdateTournamentMeta, updateHeroContent as dbUpdateHeroContent, updateVenueInfo as dbUpdateVenueInfo } from './services/db';
+import { Team, Match, Sponsor, TournamentMeta, HeroContent, VenueInfo, SocialLinks } from './types';
+import { subscribeToTournamentData, updateMatch as dbUpdateMatch, addMatch as dbAddMatch, deleteMatch as dbDeleteMatch, addEvent as dbAddEvent, upsertTeam as dbUpsertTeam, deleteTeam as dbDeleteTeam, upsertSponsor as dbUpsertSponsor, deleteSponsor as dbDeleteSponsor, updateTournamentMeta as dbUpdateTournamentMeta, updateHeroContent as dbUpdateHeroContent, updateVenueInfo as dbUpdateVenueInfo, updateSocialLinks as dbUpdateSocialLinks } from './services/db';
 import { signIn as authSignIn, signOut as authSignOut, onAuthChange } from './services/auth';
 import { transformTeams, transformMatches, transformSponsors, transformTournamentMeta, transformHeroContent, transformVenueInfo } from './utils/firebaseTransform';
-import { TEAMS, FIXTURES, SPONSORS } from './data';
+import { TEAMS, FIXTURES, SPONSORS, SOCIAL_LINKS } from './data';
 import { isFirebaseConfigured } from './firebase';
 
 interface AppContextType {
@@ -14,6 +14,7 @@ interface AppContextType {
   tournamentMeta: TournamentMeta;
   heroContent: HeroContent;
   venueInfo: VenueInfo;
+  socialLinks: SocialLinks;
   isLoading: boolean;
   selectedMatchId: string | null;
   setSelectedMatchId: (id: string | null) => void;
@@ -34,6 +35,7 @@ interface AppContextType {
   updateTournamentMeta: (meta: Partial<TournamentMeta>) => Promise<void>;
   updateHeroContent: (hero: Partial<HeroContent>) => Promise<void>;
   updateVenueInfo: (venue: Partial<VenueInfo>) => Promise<void>;
+  updateSocialLinks: (socialLinks: Partial<SocialLinks>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -63,6 +65,8 @@ const DEFAULT_VENUE_INFO: VenueInfo = {
   stadiumLabel: 'MAIN STADIUM',
 };
 
+const DEFAULT_SOCIAL_LINKS: SocialLinks = SOCIAL_LINKS;
+
 export function AppProvider({ children }: { children: ReactNode }) {
   // Internal Firebase/static state (raw). Derived display values computed below.
   const [firebaseTeams, setFirebaseTeams] = useState<Team[]>(() => isFirebaseConfigured ? [] : TEAMS);
@@ -71,6 +75,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tournamentMeta, setTournamentMeta] = useState<TournamentMeta>(DEFAULT_TOURNAMENT_META);
   const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
   const [venueInfo, setVenueInfo] = useState<VenueInfo>(DEFAULT_VENUE_INFO);
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>(DEFAULT_SOCIAL_LINKS);
   const [isLoading, setIsLoading] = useState(isFirebaseConfigured);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [adminUser, setAdminUser] = useState<User | null>(null);
@@ -130,6 +135,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTournamentMeta(transformTournamentMeta(rawData.tournament?.meta as Record<string, unknown> | undefined));
       setHeroContent(transformHeroContent(rawData.tournament?.hero as Record<string, unknown> | undefined));
       setVenueInfo(transformVenueInfo(rawData.tournament?.venue as Record<string, unknown> | undefined));
+      setSocialLinks({
+        facebook: (rawData.tournament?.socialLinks as Record<string, unknown> | undefined)?.facebook as string || '',
+        instagram: (rawData.tournament?.socialLinks as Record<string, unknown> | undefined)?.instagram as string || '',
+        x: (rawData.tournament?.socialLinks as Record<string, unknown> | undefined)?.x as string || '',
+      });
       setIsLoading(false);
     });
 
@@ -220,10 +230,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await dbUpdateVenueInfo(venue as Partial<Record<string, unknown>>);
   };
 
+  const updateSocialLinks = async (links: Partial<SocialLinks>) => {
+    await dbUpdateSocialLinks(links as Partial<Record<string, unknown>>);
+  };
+
   return (
     <AppContext.Provider value={{
       teams, fixtures, sponsors,
-      tournamentMeta, heroContent, venueInfo,
+      tournamentMeta, heroContent, venueInfo, socialLinks,
       isLoading,
       selectedMatchId, setSelectedMatchId,
       adminUser, authError,
@@ -232,7 +246,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateMatch, addMatch, deleteMatch, addEvent,
       upsertTeam, deleteTeam,
       upsertSponsor, deleteSponsor,
-      updateTournamentMeta, updateHeroContent, updateVenueInfo,
+      updateTournamentMeta, updateHeroContent, updateVenueInfo, updateSocialLinks,
     }}>
       {children}
     </AppContext.Provider>

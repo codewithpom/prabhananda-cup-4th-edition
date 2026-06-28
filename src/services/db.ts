@@ -13,6 +13,7 @@ export interface RawFirebaseData {
     meta?: Record<string, unknown>;
     hero?: Record<string, unknown>;
     venue?: Record<string, unknown>;
+    socialLinks?: Record<string, unknown>;
   };
   teams?: Record<string, unknown>;
   matches?: Record<string, unknown>;
@@ -104,4 +105,11 @@ export async function updateVenueInfo(
 ): Promise<void> {
   if (!db) throw new Error('Firebase not configured');
   await update(ref(db, 'tournament/venue'), venue);
+}
+
+export async function updateSocialLinks(
+  socialLinks: Partial<Record<string, unknown>>,
+): Promise<void> {
+  if (!db) throw new Error('Firebase not configured');
+  await update(ref(db, 'tournament/socialLinks'), socialLinks);
 }

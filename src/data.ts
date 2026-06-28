@@ -1,4 +1,4 @@
-import { Team, Match, Sponsor } from './types';
+import { Team, Match, Sponsor, SocialLinks } from './types';
 
 export const TEAMS: Team[] = [
   { 
@@ -29,6 +29,12 @@ export const TEAMS: Team[] = [
   { id: '5', name: 'Purulia RKM', logo: 'https://images.unsplash.com/photo-1577908323215-9c9ae0eac5b3?auto=format&fit=crop&w=200&q=80', group: 'C' },
   { id: '6', name: 'Asansol RKM', logo: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=200&q=80', group: 'C' },
 ];
+
+export const SOCIAL_LINKS: SocialLinks = {
+  facebook: '',
+  instagram: '',
+  x: '',
+};
 
 export const FIXTURES: Match[] = [
   {

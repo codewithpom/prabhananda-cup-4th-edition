@@ -38,6 +38,16 @@ export function transformTeams(raw: Record<string, unknown> | undefined): Team[]
   });
 }
 
+function resolveTeamDisplayName(
+  teamName: string | undefined,
+  overrideName: string | null | undefined,
+  isTbd: boolean | undefined,
+): string {
+  if (isTbd) return 'TBD';
+  const trimmedOverride = overrideName?.trim();
+  return trimmedOverride || teamName || 'Unknown';
+}
+
 export function transformMatches(
   rawMatches: Record<string, unknown> | undefined,
   teamsMap: Record<string, Team>,
@@ -49,17 +59,19 @@ export function transformMatches(
 
     const homeTeamId = (m.homeTeamId as string) ?? '';
     const awayTeamId = (m.awayTeamId as string) ?? '';
-    const homeTeam: Team = teamsMap[homeTeamId] ?? {
+    const homeTeamConfig = teamsMap[homeTeamId];
+    const awayTeamConfig = teamsMap[awayTeamId];
+    const homeTeam: Team = {
       id: homeTeamId,
-      name: 'Unknown',
-      logo: '',
-      group: '',
+      name: resolveTeamDisplayName(homeTeamConfig?.name, m.homeTeamName as string | null | undefined, m.homeTeamTbd as boolean | undefined),
+      logo: homeTeamConfig?.logo ?? '',
+      group: homeTeamConfig?.group ?? '',
     };
-    const awayTeam: Team = teamsMap[awayTeamId] ?? {
+    const awayTeam: Team = {
       id: awayTeamId,
-      name: 'Unknown',
-      logo: '',
-      group: '',
+      name: resolveTeamDisplayName(awayTeamConfig?.name, m.awayTeamName as string | null | undefined, m.awayTeamTbd as boolean | undefined),
+      logo: awayTeamConfig?.logo ?? '',
+      group: awayTeamConfig?.group ?? '',
     };
 
     // Transform events object to array
