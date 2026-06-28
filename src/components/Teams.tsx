@@ -34,8 +34,8 @@ export default function Teams() {
                   transition={{ delay: index * 0.1 }}
                   className={`bg-white/5 p-4 sm:p-6 border text-left flex flex-row sm:flex-col h-full items-center sm:items-start justify-between group transition-all relative overflow-hidden focus:outline-none ${isSelected ? 'border-yellow-500 bg-white/10' : 'border-white/10 hover:bg-white/10'}`}
                 >
-                  <div className={`w-12 h-12 sm:w-20 sm:h-20 mb-0 sm:mb-6 flex items-center justify-center transition-all mix-blend-luminosity shrink-0 ${isSelected ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`}>
-                    <img src={team.logo} alt={team.name} className="max-h-full max-w-full object-contain" />
+                  <div className={`w-12 h-12 sm:w-20 sm:h-20 mb-0 sm:mb-6 rounded-full border border-white/10 overflow-hidden bg-white/10 p-1.5 sm:p-2 flex items-center justify-center transition-all mix-blend-luminosity shrink-0 ${isSelected ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'}`}>
+                    <img src={team.logo} alt={team.name} className="w-full h-full rounded-full object-cover" />
                   </div>
                   <div className="w-full pl-3 sm:pl-0">
                     <span className={`text-[9px] sm:text-[10px] tracking-[0.2em] font-mono uppercase opacity-80 mb-2 block border-y py-1.5 sm:py-2 transition-colors ${isSelected ? 'text-yellow-500 border-yellow-500/30' : 'text-neutral-500 border-white/10 group-hover:text-yellow-500'}`}>Group {team.group}</span>
@@ -98,8 +98,8 @@ export default function Teams() {
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 blur-3xl rounded-full pointer-events-none"></div>
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 sm:gap-6 mb-8 border-b border-white/10 pb-8 relative z-10 animate-fade-in">
-                  <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border border-white/10 overflow-hidden bg-white/5 p-3 sm:p-4 mix-blend-luminosity shrink-0">
-                    <img src={selectedTeam.logo} alt={selectedTeam.name} className="w-full h-full object-contain" />
+                  <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full border border-white/10 overflow-hidden bg-white/10 p-2 sm:p-3 mix-blend-luminosity shrink-0">
+                    <img src={selectedTeam.logo} alt={selectedTeam.name} className="w-full h-full rounded-full object-cover" />
                   </div>
                   <div>
                     <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic text-white mb-2">{selectedTeam.name}</h3>
