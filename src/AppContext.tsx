@@ -48,6 +48,9 @@ const DEFAULT_TOURNAMENT_META: TournamentMeta = {
   matchDay: 'MATCH DAY 04 • LIVE NOW',
   startDate: '2026-05-20',
   endDate: '2026-05-28',
+  officialPartner: 'KOLKATA ATHLETICS MEDIA',
+  referee: 'P. K. Bandyopadhyay',
+  audioLanguage: 'Hindi / Bengali / English',
 };
 
 const DEFAULT_HERO_CONTENT: HeroContent = {

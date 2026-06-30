@@ -143,6 +143,9 @@ const DEFAULT_TOURNAMENT_META: TournamentMeta = {
   matchDay: 'MATCH DAY 04 • LIVE NOW',
   startDate: '2026-05-20',
   endDate: '2026-05-28',
+  officialPartner: 'KOLKATA ATHLETICS MEDIA',
+  referee: 'P. K. Bandyopadhyay',
+  audioLanguage: 'Hindi / Bengali / English',
 };
 
 export function transformTournamentMeta(
@@ -157,6 +160,9 @@ export function transformTournamentMeta(
     matchDay: (raw.matchDay as string) ?? DEFAULT_TOURNAMENT_META.matchDay,
     startDate: (raw.startDate as string) ?? DEFAULT_TOURNAMENT_META.startDate,
     endDate: (raw.endDate as string) ?? DEFAULT_TOURNAMENT_META.endDate,
+    officialPartner: (raw.officialPartner as string) ?? DEFAULT_TOURNAMENT_META.officialPartner,
+    referee: (raw.referee as string) ?? DEFAULT_TOURNAMENT_META.referee,
+    audioLanguage: (raw.audioLanguage as string) ?? DEFAULT_TOURNAMENT_META.audioLanguage,
   };
 }
 

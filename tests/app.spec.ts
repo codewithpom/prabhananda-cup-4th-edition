@@ -86,6 +86,13 @@ test.describe('No-Firebase demo mode', () => {
     expect(text).toContain('Bengal Youth');
   });
 
+  test('match details modal shows configurable broadcast metadata', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Detailed Match Center/i }).first().click();
+    await expect(page.getByText('Hindi / Bengali / English')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Official Sports Partner/i)).toBeVisible({ timeout: 5000 });
+  });
+
   test('full page screenshot', async ({ page }) => {
     await page.goto('/');
     await page.waitForTimeout(1500);

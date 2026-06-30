@@ -5,7 +5,7 @@ import { useAppContext } from '../AppContext';
 import { generateMatchCommentary } from '../services/gemini';
 
 export default function MatchDetailsModal() {
-  const { fixtures, selectedMatchId, setSelectedMatchId, adminUser, updateMatch } = useAppContext();
+  const { fixtures, selectedMatchId, setSelectedMatchId, adminUser, updateMatch, tournamentMeta, sponsors } = useAppContext();
   const [activeTab, setActiveTab] = useState<'stream' | 'comments' | 'stats' | 'squads'>('stream');
   const [playVideo, setPlayVideo] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -50,6 +50,9 @@ export default function MatchDetailsModal() {
   };
 
   const stats = match.stats || defaultStats;
+  const partnerName = tournamentMeta.officialPartner?.trim() || sponsors.find(s => s.name.trim())?.name || 'KOLKATA ATHLETICS MEDIA';
+  const refereeName = tournamentMeta.referee?.trim() || 'P. K. Bandyopadhyay';
+  const audioLanguage = tournamentMeta.audioLanguage?.trim() || 'Hindi / Bengali / English';
 
   return (
     <motion.div
@@ -285,17 +288,17 @@ export default function MatchDetailsModal() {
                     </div>
                     <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-2">
                       <span className="opacity-50">AUDIO LANGUAGE</span>
-                      <span className="text-white font-bold text-left sm:text-right">English / Assamese / Bengali</span>
+                      <span className="text-white font-bold text-left sm:text-right">{audioLanguage}</span>
                     </div>
                     <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-2">
                       <span className="opacity-50">REFEREE</span>
-                      <span className="text-white font-bold text-left sm:text-right">P. K. Bandyopadhyay</span>
+                      <span className="text-white font-bold text-left sm:text-right">{refereeName}</span>
                     </div>
                   </div>
 
                   <div className="border border-[dashed] border-white/10 p-5 text-center">
                     <span className="font-mono text-[10px] text-white/55 block mb-1">OFFICIAL SPORTS PARTNER</span>
-                    <span className="text-sm font-black italic tracking-tighter uppercase text-white">KOLKATA ATHLETICS MEDIA</span>
+                    <span className="text-sm font-black italic tracking-tighter uppercase text-white">{partnerName}</span>
                   </div>
                 </div>
               )}

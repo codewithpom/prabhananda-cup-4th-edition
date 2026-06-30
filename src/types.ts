@@ -62,6 +62,9 @@ export interface TournamentMeta {
   matchDay: string;
   startDate: string;
   endDate: string;
+  officialPartner?: string;
+  referee?: string;
+  audioLanguage?: string;
 }
 
 export interface HeroContent {

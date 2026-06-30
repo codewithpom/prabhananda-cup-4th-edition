@@ -50,6 +50,24 @@ export default function TournamentTab() {
           <Field label="Tournament Start Date" type="date" value={form.startDate} onChange={v => handleChange('startDate', v)} />
           <Field label="Tournament End Date" type="date" value={form.endDate} onChange={v => handleChange('endDate', v)} />
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Official Partner / Sponsor" value={form.officialPartner || ''} onChange={v => handleChange('officialPartner', v)} placeholder="KOLKATA ATHLETICS MEDIA" hint="Shown in the match details modal" />
+          <Field label="Referee" value={form.referee || ''} onChange={v => handleChange('referee', v)} placeholder="P. K. Bandyopadhyay" hint="Shown under match coverage" />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-mono uppercase tracking-widest text-white/50 block">Audio Language</label>
+          <select
+            value={form.audioLanguage || 'Hindi / Bengali / English'}
+            onChange={e => handleChange('audioLanguage', e.target.value)}
+            className="w-full bg-white/5 border border-white/20 px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500 font-mono h-11 transition-colors"
+          >
+            <option value="Hindi / Bengali / English">Hindi / Bengali / English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Bengali">Bengali</option>
+            <option value="English">English</option>
+          </select>
+          <p className="text-[9px] font-mono text-white/30">Choose the language tag shown on the match details card.</p>
+        </div>
         <div className="pt-2">
           <button
             type="submit"
